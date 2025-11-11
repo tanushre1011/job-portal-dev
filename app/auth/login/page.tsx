@@ -43,7 +43,7 @@ export default function LoginPage() {
         localStorage.setItem("token", data.token)
         localStorage.setItem("userId", data.user.id)
         localStorage.setItem("userType", data.user.userType)
-        router.push(data.user.userType === "employer" ? "/employer/dashboard" : "/jobs")
+        router.push(data.user.userType === "employer" ? "/employer/dashboard" : "/jobseeker/dashboard")
       } else {
         setError(data.error || "Login failed")
       }
