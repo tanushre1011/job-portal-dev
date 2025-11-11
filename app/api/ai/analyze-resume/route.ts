@@ -1,60 +1,88 @@
-import { generateText } from "ai"
-import { connectDB } from "@/lib/mongodb"
-import { User } from "@/lib/models/User"
-import { verifyToken } from "@/lib/auth"
-import { type NextRequest, NextResponse } from "next/server"
+import { connectDB } from "@/lib/mongodb";
+import { User } from "@/lib/models/User";
+import { verifyToken } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const token = request.headers.get("authorization")?.split(" ")[1]
+    const token = request.headers.get("authorization")?.split(" ")[1];
     if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const tokenPayload = verifyToken(token)
+    const tokenPayload = verifyToken(token);
     if (!tokenPayload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
     }
 
-    await connectDB()
+    await connectDB();
 
-    const user = await User.findById(tokenPayload.userId)
+    const user = await User.findById(tokenPayload.userId);
     if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const resumeData = user.resume?.parsedData
+    const resumeData = user.resume?.parsedData;
 
     if (!resumeData) {
-      return NextResponse.json({ error: "No resume data found" }, { status: 400 })
+      return NextResponse.json({ error: "No resume data found" }, { status: 400 });
     }
 
-    // Use AI to analyze resume and provide insights
-    const { text: analysis } = await generateText({
-      model: "openai/gpt-5-mini",
-      prompt: `Analyze this resume data and provide career recommendations and job search advice:
+    const prompt = `
+You are an AI career analyst. Analyze this resume data and provide detailed career recommendations.
 
-Skills: ${resumeData.skills?.join(", ")}
+Candidate Profile:
+Skills: ${resumeData.skills?.join(", ") || "Not specified"}
 Years of Experience: ${user.experience || "Not specified"}
-Education: ${resumeData.education?.join(", ")}
+Education: ${resumeData.education?.join(", ") || "Not specified"}
+Certifications: ${resumeData.certifications?.join(", ") || "None"}
 
 Please provide:
-1. Top 3 job roles that match these skills
-2. Skills gaps to improve employability
-3. Industries where this profile is most valuable
-4. Salary expectations based on experience and skills
-5. Specific areas to focus on for next career advancement
+1️⃣ Top 3 job roles that match this skill profile  
+2️⃣ Skill gaps or improvements needed  
+3️⃣ Industries where this profile fits best  
+4️⃣ Salary expectations (junior, mid, senior)  
+5️⃣ Specific steps for the next career advancement  
+6️⃣ A short motivational summary (1 paragraph)
 
-Format the response as a clear, actionable report.`,
-    })
+Respond in a structured, professional format.
+    `;
+
+    // ✅ Use OpenRouter API (Llama 3 model)
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "HTTP-Referer": "http://localhost:3000",
+        "X-Title": "Job Portal Resume Analyzer",
+      },
+      body: JSON.stringify({
+        model: "meta-llama/llama-3-8b-instruct", // free + accurate
+        messages: [
+          { role: "system", content: "You are a professional resume analyst and career mentor." },
+          { role: "user", content: prompt },
+        ],
+      }),
+    });
+
+    const data = await response.json();
+    console.log("Resume Analysis Response:", JSON.stringify(data, null, 2));
+
+    const analysis =
+      data?.choices?.[0]?.message?.content ||
+      "AI could not generate analysis. Please try again.";
 
     return NextResponse.json({
       analysis,
       resumeData,
       userId: user._id,
-    })
-  } catch (error) {
-    console.error("AI analysis error:", error)
-    return NextResponse.json({ error: "Failed to analyze resume" }, { status: 500 })
+    });
+  } catch (error: any) {
+    console.error("AI analysis error:", error);
+    return NextResponse.json(
+      { error: "Failed to analyze resume", details: error.message },
+      { status: 500 }
+    );
   }
 }

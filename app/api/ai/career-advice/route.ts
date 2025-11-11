@@ -1,63 +1,78 @@
-import { generateText } from "ai"
-import { connectDB } from "@/lib/mongodb"
-import { User } from "@/lib/models/User"
-import { verifyToken } from "@/lib/auth"
-import { type NextRequest, NextResponse } from "next/server"
+import { connectDB } from "@/lib/mongodb";
+import { User } from "@/lib/models/User";
+import { verifyToken } from "@/lib/auth";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.headers.get("authorization")?.split(" ")[1]
-    if (!token) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-    }
+    const token = request.headers.get("authorization")?.split(" ")[1];
+    if (!token)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const tokenPayload = verifyToken(token)
-    if (!tokenPayload) {
-      return NextResponse.json({ error: "Invalid token" }, { status: 401 })
-    }
+    const tokenPayload = verifyToken(token);
+    if (!tokenPayload)
+      return NextResponse.json({ error: "Invalid token" }, { status: 401 });
 
-    await connectDB()
+    await connectDB();
+    const user = await User.findById(tokenPayload.userId);
+    if (!user)
+      return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-    const user = await User.findById(tokenPayload.userId)
-    if (!user) {
-      return NextResponse.json({ error: "User not found" }, { status: 404 })
-    }
+    const { searchParams } = new URL(request.url);
+    const topic = searchParams.get("topic") || "career advice";
 
-    const { searchParams } = new URL(request.url)
-    const topic = searchParams.get("topic") || "general"
+    const prompt = `
+You are an AI career coach. Provide personalized advice for this job seeker.
 
-    // Use AI to provide personalized career advice
-    const { text: advice } = await generateText({
-      model: "openai/gpt-5-mini",
-      prompt: `Provide personalized career advice for this job seeker:
-
-Profile:
 Name: ${user.firstName} ${user.lastName}
 Skills: ${user.skills?.join(", ") || "Not specified"}
-Experience: ${user.experience} years
-Education: ${user.resume?.parsedData?.education?.join(", ") || "Not specified"}
+Experience: ${user.experience || 0} years
+Education: ${
+      user.resume?.parsedData?.education?.join(", ") || "Not specified"
+    }
 Location: ${user.location || "Not specified"}
 
 Topic: ${topic}
 
-Please provide:
-- Specific, actionable advice for their current career stage
-- Industry trends that match their skills
-- Skill gaps to address
+Please include:
+- Career growth strategies
+- Skill improvement recommendations
+- Job market insights
 - Networking suggestions
-- Resources for professional development
-- Next steps for career growth
+- Useful resources
+    `;
 
-Make it personalized and practical.`,
-    })
+    // ✅ OpenRouter API call
+    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENROUTER_API_KEY}`,
+        "HTTP-Referer": "http://localhost:3000",
+        "X-Title": "Job Portal AI Advisor",
+      },
+      body: JSON.stringify({
+        model: "meta-llama/llama-3-8b-instruct", // ✅ Free and fast model
+        messages: [
+          { role: "system", content: "You are a professional career mentor." },
+          { role: "user", content: prompt },
+        ],
+      }),
+    });
 
-    return NextResponse.json({
-      userId: user._id,
-      topic,
-      advice,
-    })
-  } catch (error) {
-    console.error("Career advice error:", error)
-    return NextResponse.json({ error: "Failed to get career advice" }, { status: 500 })
+    const data = await response.json();
+    console.log("OpenRouter Response:", JSON.stringify(data, null, 2));
+
+    const advice =
+      data?.choices?.[0]?.message?.content ||
+      "AI could not generate advice. Please try again.";
+
+    return NextResponse.json({ advice });
+  } catch (error: any) {
+    console.error("Career advice error:", error);
+    return NextResponse.json(
+      { error: "Failed to generate career advice", details: error.message },
+      { status: 500 }
+    );
   }
 }
