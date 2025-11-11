@@ -3,7 +3,7 @@ import { User } from "@/lib/models/User"
 import { verifyToken } from "@/lib/auth"
 import { type NextRequest, NextResponse } from "next/server"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB()
 
@@ -17,7 +17,8 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
-    const user = await User.findById(params.id).select("-password")
+    const { id } = await params
+    const user = await User.findById(id).select("-password")
 
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 })
@@ -30,7 +31,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
   }
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PUT(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB()
 
@@ -44,13 +45,15 @@ export async function PUT(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ error: "Invalid token" }, { status: 401 })
     }
 
+    const { id } = await params
+
     // Only allow users to update their own profile
-    if (tokenPayload.userId !== params.id) {
+    if (tokenPayload.userId !== id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 })
     }
 
     const data = await request.json()
-    const user = await User.findByIdAndUpdate(params.id, data, {
+    const user = await User.findByIdAndUpdate(id, data, {
       new: true,
       runValidators: true,
     }).select("-password")
