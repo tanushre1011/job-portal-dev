@@ -44,6 +44,7 @@ export default function JobSeekerDashboard() {
   const [savedJobs, setSavedJobs] = useState<SavedJob[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState("overview")
+  const [authChecked, setAuthChecked] = useState(false)
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -51,35 +52,53 @@ export default function JobSeekerDashboard() {
         const token = localStorage.getItem("token")
         const userId = localStorage.getItem("userId")
 
+        console.log("[v0] Token:", token ? "exists" : "missing", "UserId:", userId ? "exists" : "missing")
+
         if (!token || !userId) {
+          console.log("[v0] No token/userId, redirecting to login")
           router.push("/auth/login")
           return
         }
+
+        console.log("Fetching user profile for:", userId)
 
         // Fetch user profile
         const response = await fetch(`/api/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
+        console.log(" API response status:", response.status)
+
         if (response.ok) {
           const userData = await response.json()
+          console.log("User data received:", userData.email)
           setProfile(userData)
         } else {
+          if (response.status === 401 || response.status === 403) {
+            console.log(" Unauthorized, clearing storage and redirecting")
+            localStorage.removeItem("token")
+            localStorage.removeItem("userId")
+            localStorage.removeItem("userType")
+          }
+          console.log(" API error:", response.status)
           router.push("/auth/login")
         }
       } catch (error) {
-        console.error("Error fetching profile:", error)
+        console.error(" Error fetching profile:", error)
+        setProfile(null)
       } finally {
+        setAuthChecked(true)
         setLoading(false)
       }
     }
 
     fetchProfile()
-  }, [router])
+  }, [router]) // removed unnecessary dependency
 
   const handleLogout = () => {
     localStorage.removeItem("token")
     localStorage.removeItem("userId")
+    localStorage.removeItem("userType")
     router.push("/")
   }
 
@@ -87,8 +106,20 @@ export default function JobSeekerDashboard() {
     return <div className="min-h-screen flex items-center justify-center">Loading dashboard...</div>
   }
 
+  if (!authChecked) {
+    return <div className="min-h-screen flex items-center justify-center">Authenticating...</div>
+  }
+
   if (!profile) {
-    return <div className="min-h-screen flex items-center justify-center">User profile not found</div>
+    return (
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+        <p>Unable to load profile. Please try again.</p>
+        <Button onClick={() => window.location.reload()}>Retry</Button>
+        <Button variant="outline" onClick={() => router.push("/auth/login")}>
+          Back to Login
+        </Button>
+      </div>
+    )
   }
 
   return (
