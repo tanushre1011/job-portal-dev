@@ -60,31 +60,31 @@ export default function JobSeekerDashboard() {
           return
         }
 
-        console.log("Fetching user profile for:", userId)
+        console.log("[v0] Fetching user profile for:", userId)
 
         // Fetch user profile
         const response = await fetch(`/api/users/${userId}`, {
           headers: { Authorization: `Bearer ${token}` },
         })
 
-        console.log(" API response status:", response.status)
+        console.log("[v0] API response status:", response.status)
 
         if (response.ok) {
           const userData = await response.json()
-          console.log("User data received:", userData.email)
+          console.log("[v0] User data received:", userData.email)
           setProfile(userData)
         } else {
           if (response.status === 401 || response.status === 403) {
-            console.log(" Unauthorized, clearing storage and redirecting")
+            console.log("[v0] Unauthorized, clearing storage and redirecting")
             localStorage.removeItem("token")
             localStorage.removeItem("userId")
             localStorage.removeItem("userType")
           }
-          console.log(" API error:", response.status)
+          console.log("[v0] API error:", response.status)
           router.push("/auth/login")
         }
       } catch (error) {
-        console.error(" Error fetching profile:", error)
+        console.error("[v0] Error fetching profile:", error)
         setProfile(null)
       } finally {
         setAuthChecked(true)
