@@ -1,30 +1,76 @@
-# Job portal development
+# 🌟 Job Portal Development
 
-*Automatically synced with your [v0.app](https://v0.app) deployments*
+A full-stack **job portal application** built with **Next.js**, **TypeScript**, and **React (TSX)**, providing users with job listings, profile management, and AI-powered recommendations.
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/tanushrees-projects-e035b840/v0-job-portal-development)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.app-black?style=for-the-badge)](https://v0.app/chat/plrD2GF6WL8)
+---
 
-## Overview
+## 🚀 Overview
 
-This repository will stay in sync with your deployed chats on [v0.app](https://v0.app).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.app](https://v0.app).
+The Job Portal allows users to **browse jobs**, **manage profiles**, and receive **personalized career insights** using AI.
 
-## Deployment
+---
 
-Your project is live at:
+## 🔹 Features
 
-**[https://vercel.com/tanushrees-projects-e035b840/v0-job-portal-development](https://vercel.com/tanushrees-projects-e035b840/v0-job-portal-development)**
+### 🏠 Home Page
+- Browse jobs filtered by **type**, **location**, or **company name**.
 
-## Build your app
+### 🔐 Authentication
+- Users need to **log in** or **sign up** to access the dashboard.
 
-Continue building your app on:
+### 📊 Dashboard
+After logging in, the dashboard displays:
 
-**[https://v0.app/chat/plrD2GF6WL8](https://v0.app/chat/plrD2GF6WL8)**
+- **👤 Profile:** Name, email, skills, experience, location, and resume upload status.
+- **⚡ Overview:** Quick actions like saved jobs, browsing jobs, applications, profile completeness, and next steps.
+- **💼 Recommendations:** AI-powered job suggestions based on skills.
+- **📄 Resume:** Upload a resume, automatically parsed to extract skills and relevant information.
+- **🤖 AI Insights:** Personalized career advice and recommendations based on profile and resume.
 
-## How It Works
+---
 
-1. Create and modify your project using [v0.app](https://v0.app)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+## 🛠️ Technologies Used
+
+- **Next.js** – Frontend and server-side rendering
+- **React (TSX)** – Component-based UI
+- **TypeScript** – Strongly typed code
+- **MongoDB** – Database for storing user and job data
+- **Node.js** – Backend APIs
+- **REST API & JWT** – For authentication and secure data communication
+- **AI/ML Integration** – For resume parsing and job recommendations
+
+---
+
+## ⚙️ How It Works
+
+1. Users browse jobs on the home page or search using **filters**.
+2. Users log in/sign up to access the **dashboard**.
+3. Dashboard displays:
+   - Profile details
+   - Quick actions
+   - Job recommendations
+   - Resume parsing
+   - AI insights
+4. Jobs are recommended based on:
+   - Skills
+   - Experience
+   - Location
+   - Job preferences
+5. Users can **upload resumes** to extract skills and get personalized insights.
+
+---
+
+## 🌟 Future Improvements
+
+- Advanced filtering by **salary, company, or job type**
+- Enhanced AI recommendations using **user behavior**
+- Integration with **external job APIs** for real-time listings
+
+---
+
+## 🎯 Highlights
+
+- Fully dynamic **dashboard with AI-powered insights**
+- Personalized **job recommendations** based on user profile
+- Resume parsing with **skill extraction**
+- Built entirely with modern web technologies: **Next.js, TSX, TypeScript, MongoDB**
