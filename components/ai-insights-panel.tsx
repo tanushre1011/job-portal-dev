@@ -65,11 +65,11 @@ export function AIInsightsPanel({ jobId }: { jobId?: string }) {
       <CardContent>
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="resume">Resume</TabsTrigger>
-            <TabsTrigger value="job" disabled={!jobId}>
-              Job Match
-            </TabsTrigger>
-            <TabsTrigger value="career">Career</TabsTrigger>
+           
+            <TabsTrigger value="resume"><b> RESUME </b></TabsTrigger>
+            <TabsTrigger value=" ">  </TabsTrigger>
+            
+            <TabsTrigger value="career"> <b> CAREER </b></TabsTrigger>
           </TabsList>
 
           <TabsContent value="resume" className="space-y-4 mt-4">
