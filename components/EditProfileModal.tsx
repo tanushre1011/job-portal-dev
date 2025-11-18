@@ -13,17 +13,44 @@ export function EditProfileModal({ open, onClose, profile, onSave }: any) {
     experience: profile.experience || 0,
     skills: profile.skills?.join(", ") || ""
   })
+  const [saving, setSaving] = useState(false)
 
   const handleChange = (e: any) => {
     setForm({ ...form, [e.target.name]: e.target.value })
   }
 
-  const handleSubmit = () => {
-    const updated = {
+  const handleSubmit = async () => {
+    setSaving(true)
+    const updatedProfile = {
       ...form,
       skills: form.skills.split(",").map((s) => s.trim())
     }
-    onSave(updated)
+
+    try {
+      const token = localStorage.getItem("token")
+      if (!token) return
+
+      const res = await fetch("/api/users/me", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatedProfile),
+      })
+
+      if (res.ok) {
+        const data = await res.json()
+        onSave(data)
+        onClose()
+      } else {
+        console.error("Failed to save profile")
+      }
+    } catch (err) {
+      console.error("Error saving profile:", err)
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
@@ -40,7 +67,9 @@ export function EditProfileModal({ open, onClose, profile, onSave }: any) {
           <Input name="experience" type="number" value={form.experience} onChange={handleChange} placeholder="Experience (years)" />
           <Input name="skills" value={form.skills} onChange={handleChange} placeholder="Skills (comma separated)" />
 
-          <Button onClick={handleSubmit} className="w-full">Save Changes</Button>
+          <Button onClick={handleSubmit} className="w-full" disabled={saving}>
+            {saving ? "Saving..." : "Save Changes"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
