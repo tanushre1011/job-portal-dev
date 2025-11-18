@@ -71,12 +71,7 @@ export function JobSearchFilter({ onSearch, isLoading }: JobSearchFilterProps) {
           </SelectContent>
         </Select>
 
-        <Input
-          placeholder="Skills (comma-separated)..."
-          value={filters.skills}
-          onChange={(e) => setFilters({ ...filters, skills: e.target.value })}
-          onKeyPress={(e) => e.key === "Enter" && handleSearch()}
-        />
+        
       </div>
 
       <div className="flex gap-2">
