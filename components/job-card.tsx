@@ -23,7 +23,7 @@ export function JobCard(props: JobCardProps) {
         <span>{props.jobType}</span>
       </div>
       <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
-        <DollarSign className="w-3 h-3" />
+        {/*<DollarSign className="w-3 h-3" />*/}
         <span>
           {props.salary.min}-{props.salary.max} {props.salary.currency}
         </span>
