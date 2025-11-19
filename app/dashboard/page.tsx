@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { EditProfileModal } from "@/components/EditProfileModal"
-import { JobRecommendations } from "@/components/JobRecommendations"
+import { JobRecommendations } from "@/components/job-recommendations"
 import { Button } from "@/components/ui/button"
 
 export default function Dashboard() {
